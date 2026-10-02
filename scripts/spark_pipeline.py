@@ -136,3 +136,21 @@ silver_count = cleaned.count()
 print(f"[silver] bronze rows: {bronze_count:,}")
 print(f"[silver] silver rows(filtered): {silver_count:,}")
 print(f"[silver] filtered out: {bronze_count - silver_count:,} rows")
+
+
+summary = (
+    cleaned.groupBy("pickup_year", "pickup_month", "pickup_borough")
+    .agg(
+        F.count("*").alias("trip_count"),
+        F.round(F.avg("fare_amount"), 2).alias("avg_fare"),
+        F.round(F.avg("trip_distance"), 2).alias("avg_distance_miles"),
+        F.round(F.avg("tip_amount"), 2).alias("avg_tip"),
+    )
+    .orderBy("pickup_year", "pickup_month", F.desc("trip_count"))
+)
+
+summary.show(25, truncate=False)
+
+summary_path = "benchmarks/borough_month_summary"
+summary.coalesce(1).write.mode("overwrite").option(
+    "header", True).csv(summary_path)
