@@ -1,0 +1,13 @@
+{
+  "engine": "pandas (chunked month-by-month)",
+  "pandas_version": "3.0.6",
+  "read_seconds": 41.53,
+  "join_seconds": 6.1,
+  "filter_seconds": 6.63,
+  "write_seconds": 13.38,
+  "aggregation_seconds": 0.01,
+  "total_seconds": 69.48,
+  "bronze_rows": 22519712,
+  "silver_rows": 21965489,
+  "rows_dropped_by_quality_filter": 554223
+}

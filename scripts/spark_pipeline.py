@@ -5,6 +5,8 @@ from pyspark.sql.types import (
 from pyspark.sql import functions as F
 import glob
 import os
+import time
+import json
 
 # 显式定义schema，对应CSV的18列
 TRIP_SCHEMA = StructType([
@@ -37,6 +39,8 @@ spark = (
 )
 spark.sparkContext.setLogLevel("WARN")
 
+t_start = time.time()
+
 RAW_DIR = "data/raw"
 BRONZE_DIR = "data/bronze"
 
@@ -49,6 +53,7 @@ def month_from_filename(path: str) -> str:
 
 files = sorted(glob.glob(os.path.join(RAW_DIR, "yellow_tripdata_*.csv.gz")))
 
+t0 = time.time()
 for f in files:
     ym = month_from_filename(f)          # "2019-01"
     year, month = ym.split("-")
@@ -62,10 +67,12 @@ for f in files:
     out_path = os.path.join(BRONZE_DIR, f"yellow_tripdata_{ym}")
     df.write.mode("overwrite").parquet(out_path)
     print(f"[bronze] {ym}: write {df.count():,} rows -> {out_path}")
+bronze_elapsed = time.time() - t0
 
 
 BRONZE_GLOB = "data/bronze/yellow_tripdata_*"
 
+t0 = time.time()
 bronze = spark.read.parquet(BRONZE_GLOB)
 
 # 维度表1:zone lookup(265行)
@@ -137,7 +144,9 @@ print(f"[silver] bronze rows: {bronze_count:,}")
 print(f"[silver] silver rows(filtered): {silver_count:,}")
 print(f"[silver] filtered out: {bronze_count - silver_count:,} rows")
 
+silver_elapsed = time.time() - t0
 
+t0 = time.time()
 summary = (
     cleaned.groupBy("pickup_year", "pickup_month", "pickup_borough")
     .agg(
@@ -154,3 +163,25 @@ summary.show(25, truncate=False)
 summary_path = "benchmarks/borough_month_summary"
 summary.coalesce(1).write.mode("overwrite").option(
     "header", True).csv(summary_path)
+gold_elapsed = time.time() - t0
+
+total_elapsed = time.time() - t_start
+
+result = {
+    "engine": "pyspark",
+    "spark_version": spark.version,
+    "master": "local[*]",
+    "bronze_ingestion_seconds": round(bronze_elapsed, 2),
+    "silver_build_seconds": round(silver_elapsed, 2),
+    "gold_aggregation_seconds": round(gold_elapsed, 2),
+    "total_seconds": round(total_elapsed, 2),
+    "bronze_rows": bronze_count,
+    "silver_rows": silver_count,
+    "rows_dropped_by_quality_filter": bronze_count - silver_count,
+}
+with open("benchmarks/pyspark_timing.json", "w") as fh:
+    json.dump(result, fh, indent=2)
+
+print(json.dumps(result, indent=2))
+
+spark.stop()

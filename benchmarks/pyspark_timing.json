@@ -1,0 +1,12 @@
+{
+  "engine": "pyspark",
+  "spark_version": "3.5.3",
+  "master": "local[*]",
+  "bronze_ingestion_seconds": 110.24,
+  "silver_build_seconds": 55.33,
+  "gold_aggregation_seconds": 8.01,
+  "total_seconds": 173.57,
+  "bronze_rows": 22519712,
+  "silver_rows": 21964002,
+  "rows_dropped_by_quality_filter": 555710
+}
