@@ -133,6 +133,6 @@ silver_path = "data/silver/yellow_tripdata"
 
 bronze_count = bronze.count()
 silver_count = cleaned.count()
-print(f"[silver] bronze行数: {bronze_count:,}")
-print(f"[silver] silver行数(过滤后): {silver_count:,}")
-print(f"[silver] 被过滤掉: {bronze_count - silver_count:,} 行")
+print(f"[silver] bronze rows: {bronze_count:,}")
+print(f"[silver] silver rows(filtered): {silver_count:,}")
+print(f"[silver] filtered out: {bronze_count - silver_count:,} rows")
