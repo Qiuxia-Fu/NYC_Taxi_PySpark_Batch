@@ -1,0 +1,13 @@
+# Python环境
+.venv/
+__pycache__/
+*.pyc
+
+# 数据:原始+生成的,体积大且能重新生成,不进仓库
+data/raw/
+data/bronze/
+data/silver/
+data/silver_pandas/
+
+# macOS
+.DS_Store
