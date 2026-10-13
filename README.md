@@ -113,33 +113,3 @@ process.
   `.count()` calls, and untuned shuffle partitioning as the actual causes,
   and flagged where the comparison itself has a measurement-fairness
   caveat (Gold-stage input-size mismatch).
-
-## Possible extensions
-
-- Re-run Bronze ingestion against an already-decompressed or pre-split
-  Parquet source to remove the non-splittable-input penalty and isolate
-  the real core-count effect.
-- Tune `spark.sql.shuffle.partitions` down from the 200 default to match
-  this data volume and re-measure the Gold stage.
-- Re-run the Gold-stage comparison starting both engines from the same
-  Silver Parquet output, to get a genuinely apples-to-apples aggregation
-  benchmark.
-
-## CV / interview talking points (grounded in the numbers above)
-
-- "Built a PySpark batch pipeline processing 22.5M NYC taxi trip records
-  across 3 months, with schema-on-read, dual broadcast joins against
-  reference dimensions, a data-quality gate, and Hive-partitioned Parquet
-  output simulating a Bronze -> Silver -> Gold lakehouse pattern."
-- "Benchmarked against a memory-aware chunked pandas baseline on identical
-  hardware and found a counter-intuitive result: pandas outperformed
-  local-mode PySpark even when Spark was given all available CPU cores,
-  because Spark's parallelism advantage was capped by a non-splittable
-  gzip input format on the read stage. Diagnosed the actual bottlenecks
-  (input splittability, redundant full-data count() calls, untuned shuffle
-  partitioning) rather than reporting a single number, and identified
-  where the benchmark itself needed a fairness caveat."
-
-That second bullet is deliberately not a flat "X% faster/slower" claim — it
-signals the ability to read a benchmark critically, which is a stronger
-interview answer than a cherry-picked number.
